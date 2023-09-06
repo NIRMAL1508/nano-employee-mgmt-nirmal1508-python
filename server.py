@@ -1,29 +1,16 @@
-from flask import Flask, request, jsonify
-import json
+from flask import Flask
+from flask import request
+from flask import jsonify
 
 app = Flask(__name__)
-
-# Specify the JSON filename
-json_filename = "data.json"
-
-# Load existing data from the JSON file
-try:
-    with open(json_filename, "r") as json_file:
-        employee_database = json.load(json_file)
-except FileNotFoundError:
-    employee_database = []
-
-def save_employee_data():
-    with open(json_filename, "w") as json_file:
-        json.dump(employee_database, json_file, indent=4)
-
+employee_database = []
 def generate_employee_id():
     return str(len(employee_database) + 1)
-
-# Greeting
+# Greeting 
 @app.route("/greeting", methods=['GET'])
 def greeting():
     return 'Hello world!'
+
 
 # Create Employee
 @app.route('/employee', methods=['POST'])
@@ -40,41 +27,72 @@ def create_employee():
     }
 
     employee_database.append(employee)
-    
-    # Save the updated data to the JSON file
-    save_employee_data()
 
     return jsonify({"employeeId": employee_id}), 201
+
 
 # Get all Employee details
 @app.route('/employees/all', methods=['GET'])
 def get_all_employees():
     return jsonify(employee_database)
 
-# Get Employee details by ID
+# Get all Employee details
+def find_employee_by_id(employee_id):
+    for employee in employee_database:
+        if employee['employeeId'] == employee_id:
+            return employee
+    return None
+
+# Get Employee details
 @app.route('/employee/<id>', methods=['GET'])
 def get_employee(id):
-    for employee in employee_database:
-        if employee['employeeId'] == id:
-            return jsonify(employee)
-    return jsonify({"message": f"Employee with ID {id} was not found"}), 404
+    employee = find_employee_by_id(id)
+    if employee is None:
+        return jsonify({"message": f"Employee with {id} was not found"}), 404
+    return jsonify(employee)
 
-# Search Employees by Name
-@app.route('/employee/search', methods=['GET'])
-def search_employee_by_name():
-    name = request.args.get('name')
-    found_employees = []
 
-    for employee in employee_database:
-        if employee['name'] == name:
-            found_employees.append(employee)
+def evaluate_filters(employee, filters, condition="AND"):
+    if not filters:
+        return True  # No filters, so consider it a match
 
-    if found_employees:
-        return jsonify(found_employees)
+    if condition == "AND":
+        return all(apply_filter(employee, filter_data) for filter_data in filters)
+    elif condition == "OR":
+        return any(apply_filter(employee, filter_data) for filter_data in filters)
     else:
-        return jsonify({"message": f"No employees with name {name} found"}), 404
+        return False
 
-# Update and Delete routes can be added similarly
+def apply_filter(employee, filter_data):
+    field_name = filter_data.get("fieldName")
+    eq_value = filter_data.get("eq")
+    neq_value = filter_data.get("neq")
+
+    if field_name == "name":
+        return (eq_value and employee["name"] == eq_value) or (neq_value and employee["name"] != neq_value)
+    elif field_name == "city":
+        return (eq_value and employee["city"] == eq_value) or (neq_value and employee["city"] != neq_value)
+    else:
+        return False  # Unknown field name
+
+@app.route('/employees/search', methods=['POST'])
+def search_employees():
+    search_request = request.get_json()
+
+    if "fields" not in search_request:
+        return jsonify({"error": "The 'fields' field is required"}), 400
+
+    fields = search_request["fields"]
+
+    if not fields:
+        return jsonify({"error": "At least one filter criterion is required"}), 400
+
+    condition = search_request.get("condition", "AND")
+
+    matching_employees = [employee for employee in employee_database if evaluate_filters(employee, fields, condition)]
+
+    return jsonify(matching_employees), 200
+
 
 if __name__ == '__main__':
-    app.run(port=8080, host='0.0.0.0')
+    app.run(port=8080,host='0.0.0.0')
