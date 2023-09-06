@@ -1,0 +1,25 @@
+Gitcommands:
+[Link - https://education.github.com/git-cheat-sheet-education.pdf]
+[Youtube - https://youtu.be/apGV9Kg7ics?si=G2wXB9zHnMiZz3Xw]
+
+1.git init 
+2.git add 
+3.git status 
+4.git commit -m"message" 
+5.git log 
+6.git stash 
+7.git stash pop 
+8.git stash clear 
+9.git reset 
+10.git remote add origin 
+11.git remote -v //shows the repo 
+12.git push orgin master//update the repo in github 
+13.git pull --rebase orgin master 
+14.git clone //bring the project locally into your folder 
+15.git branch //creating new branch 
+16.git checkout //points to branch 
+17.git checkout & git merge 
+18.git remote add upstream <source repo's url> 
+19.git push orgin -f // 
+20.process of updating main branch of user wrt main branch of upstream a.git checkout main b.git fetch --all --prune //get all the updated commits c.git reset --hard upstream/main d.git log (you got all the commits) e.git push orgin master OR git pull upstream master(does the same thing ) and git push orgin master //done with the two commands 
+21.git rebase -i //just to combine the commits into single commit pick->take it as commit s->combine it with the pick commit above it :x :x
