@@ -1,0 +1,17 @@
+name: Run all checks
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  run-tests:
+    uses: sahaj-nano/nano-employee-mgmt.all-tests-workflow-scripts/.github/workflows/automated-build-publish-test.yml@main
+    secrets: inherit
