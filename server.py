@@ -11,6 +11,7 @@ def generate_employee_id():
 def greeting():
     return 'Hello world!'
 
+
 # Create Employee
 @app.route('/employee', methods=['POST'])
 def create_employee():
@@ -49,6 +50,7 @@ def get_employee(id):
     if employee is None:
         return jsonify({"message": f"Employee with {id} was not found"}), 404
     return jsonify(employee)
+
 
 # Search employees
 def search_employees(search_request):
