@@ -52,8 +52,32 @@ def get_employee(id):
     return jsonify(employee)
 
 
-# Search employees
-def search_employees(search_request):
+def evaluate_filters(employee, filters, condition="AND"):
+    if not filters:
+        return True  # No filters, so consider it a match
+
+    if condition == "AND":
+        return all(apply_filter(employee, filter_data) for filter_data in filters)
+    elif condition == "OR":
+        return any(apply_filter(employee, filter_data) for filter_data in filters)
+    else:
+        return False
+
+def apply_filter(employee, filter_data):
+    field_name = filter_data.get("fieldName")
+    eq_value = filter_data.get("eq")
+    neq_value = filter_data.get("neq")
+
+    if field_name == "name":
+        return (eq_value and employee["name"] == eq_value) or (neq_value and employee["name"] != neq_value)
+    elif field_name == "city":
+        return (eq_value and employee["city"] == eq_value) or (neq_value and employee["city"] != neq_value)
+    else:
+        return False  # Unknown field name
+
+@app.route('/employees/search', methods=['POST'])
+def search_employees():
+    search_request = request.get_json()
 
     if "fields" not in search_request:
         return jsonify({"error": "The 'fields' field is required"}), 400
@@ -65,35 +89,9 @@ def search_employees(search_request):
 
     condition = search_request.get("condition", "AND")
 
-    # Initialize a list to store matching employees
-    matching_employees = []
-
-    for employee in employee_database:
-        if evaluate_filters(employee, fields, condition):
-            matching_employees.append(employee)
+    matching_employees = [employee for employee in employee_database if evaluate_filters(employee, fields, condition)]
 
     return jsonify(matching_employees), 200
-
-# Evaluate filter criteria
-def evaluate_filters(employee, fields, condition):
-    for criterion in fields:
-        fieldName = criterion.get("fieldName")
-        eq = criterion.get("eq")
-        neq = criterion.get("neq")
-
-        if not fieldName or (eq is None and neq is None):
-            continue
-
-        if eq is not None and employee.get(fieldName) == eq:
-            if condition == "OR":
-                return True
-        elif neq is not None and employee.get(fieldName) != neq:
-            if condition == "OR":
-                return True
-        elif condition == "AND":
-            return False
-
-    return condition == "OR"
 
 
 if __name__ == '__main__':
