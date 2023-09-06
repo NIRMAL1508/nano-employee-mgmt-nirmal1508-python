@@ -1,6 +1,19 @@
 from flask import Flask
 from flask import request
 from flask import jsonify
+from flask_sqlalchemy import SQLAlchemy
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///employees.db'  # SQLite in-memory database
+db = SQLAlchemy(app)
+
+# Define a database model
+class Employee(db.Model):
+    employeeId = db.Column(db.String(20), primary_key=True)
+    name = db.Column(db.String(100))
+    city = db.Column(db.String(100))
+
+db.create_all() 
+
 
 app = Flask(__name__)
 employee_database = []
