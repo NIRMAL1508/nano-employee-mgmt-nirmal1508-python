@@ -14,7 +14,6 @@ except FileNotFoundError:
     employee_database = []
 
 def save_employee_data():
-    # Save the employee data to the JSON file
     with open(json_filename, "w") as json_file:
         json.dump(employee_database, json_file, indent=4)
 
@@ -59,6 +58,21 @@ def get_employee(id):
         if employee['employeeId'] == id:
             return jsonify(employee)
     return jsonify({"message": f"Employee with ID {id} was not found"}), 404
+
+# Search Employees by Name
+@app.route('/employee/search', methods=['GET'])
+def search_employee_by_name():
+    name = request.args.get('name')
+    found_employees = []
+
+    for employee in employee_database:
+        if employee['name'] == name:
+            found_employees.append(employee)
+
+    if found_employees:
+        return jsonify(found_employees)
+    else:
+        return jsonify({"message": f"No employees with name {name} found"}), 404
 
 # Update and Delete routes can be added similarly
 
